@@ -10,12 +10,25 @@ echo "Grabbing input T1w image"
 t1=`jq -r '.t1' config.json`;
 echo "Files loaded"
 
+# Possibly reorient 2 std
+if [ -f t1_reor.nii.gz ] ; then
+	echo "File exists. Skipping"
+else
+	echo "reorienting"
+	
+	# saving matrix
+	fslreorient2std ${t1} | tee reor.xfm
+	# actual reorient
+	fslreorient2std ${t1} t1_reor.nii.gz
+
+fi
+
 # Crop FOV
 if [ -f "t1_robustfov.nii.gz" ];then
 	echo "File exists. Skipping"
 else
 	echo "Cropping FOV"
-	robustfov -i ${t1} \
+	robustfov -i t1_reor.nii.gz \
 	-m roi2full.mat \
 	-r t1_robustfov.nii.gz;
 
@@ -115,3 +128,11 @@ else
 fi
 
 echo "ACPC Alignment Pipeline complete"
+
+
+
+
+
+
+
+
